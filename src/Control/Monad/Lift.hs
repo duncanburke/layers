@@ -957,23 +957,20 @@ class (Monad i, Monad m) => MonadInner i m where
 instance Monad m => MonadInner m m where
     liftI = id
 
+------------------------------------------------------------------------------
+instance (MonadInner' i m) => MonadInner i m where
+  liftI = liftI'
 
 ------------------------------------------------------------------------------
-instance (Monad m, Monad (t m)) => MonadInner (t m) (t m) where
-    liftI = id
-
-
-------------------------------------------------------------------------------
-instance (MonadTrans t, Monad m, Monad (t m)) => MonadInner m (t m) where
-    liftI = lift
-
+class (Monad i, Monad m) => MonadInner' i m where
+  liftI' :: i a -> m a
 
 ------------------------------------------------------------------------------
-instance (MonadInner i m, MonadInner m (t m)) => MonadInner i (t m) where
-    liftI = liftT . liftI
+instance (MonadInner i m, MonadTrans t, MonadInner m (t m)) => MonadInner' i (t m) where
+    liftI' = liftT . liftI
       where
         liftT :: MonadInner m (t m) => m a -> t m a
-        liftT = liftI
+        liftT = lift
 
 
 #if MIN_VERSION_mmorph(1, 0, 1)
